@@ -20,6 +20,17 @@
 .DS_Store
 *.pem
 
+# Ignore .terraform directory
+/.terraform/
+ **/.terraform/*
+
+# Ignore Terraform files
+*.tfstate
+*.tfstate.backup
+*.tflock.hcl
+*.lock.hcl
+crash.log
+
 # debug
 npm-debug.log*
 yarn-debug.log*
