@@ -11,3 +11,15 @@ variable "region" {
   type        = string
   default     = "europe-north1"
 }
+
+variable "service_name" {
+  description = "Name of cloud run service"
+  type        = string
+  default     = "todo-cloud-run-service-v2"
+}
+
+variable "initial_image_url" {
+  description = "Initial image to act as placeholder"
+  type        = string
+  default = "us-docker.pkg.dev/cloudrun/container/hello"
+}

@@ -2,6 +2,6 @@
 
 terraform {
   backend "gcs" {
-    bucket  = "todo-app-tfstate-bucket"
+    bucket  = "todo-app-bucket-v2"
   }
 }

@@ -3,11 +3,13 @@ name: Deploy to Cloud Run
 on:
   push:
     branches:
-      - devops/exp-one
+      - main
 
 env:
-  DOCKER_IMAGE_NAME: todo-app
-  DOCKER_REPOSITORY_ID: todo-app-repository
+  DOCKER_IMAGE_NAME: todo-app-v2
+  DOCKER_REPOSITORY_ID: todo-app-repository-v2
+  CLOUD_RUN_SERVICE_NAME: todo-cloud-run-service-v2
+  GCP_REGION: europe-north1
 
 jobs:
   build-and-deploy:
@@ -41,14 +43,9 @@ jobs:
         docker tag ${{ env.DOCKER_IMAGE_NAME }} europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.DOCKER_REPOSITORY_ID }}/${{ env.DOCKER_IMAGE_NAME }}:latest
         docker push europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.DOCKER_REPOSITORY_ID }}/${{ env.DOCKER_IMAGE_NAME }}:latest
 
-    - name: Deploy to Cloud Run V2
-      id: 'deploy'
-      uses: 'google-github-actions/deploy-cloudrun@v2'
-      with:
-        service: 'todo-app'
-        region: 'europe-north1'
-        image: 'europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.DOCKER_REPOSITORY_ID }}/${{ env.DOCKER_IMAGE_NAME }}:latest'
-        flags: '--allow-unauthenticated'
-
-    - name: 'Show output'
-      run: echo ${{ steps.deploy.outputs.url }}
+    - name: Deploy to Cloud Run
+      id: deploy
+      run: |
+        gcloud run deploy ${{ env.CLOUD_RUN_SERVICE_NAME }} --image europe-north1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.DOCKER_REPOSITORY_ID }}/${{ env.DOCKER_IMAGE_NAME }}:latest \
+        --region ${{ env.GCP_REGION }} --platform managed --allow-unauthenticated --quiet --format=json
+        echo ::set-output name=url::$(gcloud run services describe ${{ env.CLOUD_RUN_SERVICE_NAME }} --region ${{ env.GCP_REGION }} --format='value(status.url)')
