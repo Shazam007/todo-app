@@ -11,69 +11,33 @@ provider "google" {
 #     "run.googleapis.com",
 #     "cloudbuild.googleapis.com",
 #     "container.googleapis.com",
-#     "artifactregistry.googleapis.com"
+#     "artifactregistry.googleapis.com",
+#     "cloudresourcemanager.googleapis.com"
 #   ])
 #   project = var.project_id
 #   service = each.key
 # }
 
 # Service account to be used by Cloud Run service
-resource "google_service_account" "cloud_run_sa" {
-  account_id   = "cloud-run-sa-v2"
-  display_name = "Cloud Run Service Account v2"
-}
-
-# Assigning roles to the service account
-resource "google_project_iam_member" "cloud_run_sa_roles" {
-  for_each = toset([
-    "roles/run.admin",
-    "roles/run.invoker",
-    "roles/cloudbuild.builds.editor",
-    "roles/artifactregistry.admin",
-    "roles/iam.serviceAccountUser",
-  ])
-  role = each.key
-  member = "serviceAccount:${google_service_account.cloud_run_sa.email}"
-  project = var.project_id
+module "cloud_run_service_account" {
+  source = "./modules/service_account"
+  project_id = var.project_id
 }
 
 # Artifact Registry repository to store Docker images
-resource "google_artifact_registry_repository" "container_repository" {
-  location      = var.region
+module "artifact_registry" {
+  source = "./modules/artifact_registry"
+  project_id = var.project_id
+  region = var.region
   repository_id = "todo-app-repository-v2"
-  format        = "DOCKER"
-  description   = "container repository to store images of todo-app v2"
-}
-
-# Service account key to be used by Cloud Run service
-resource "google_service_account_key" "cloud_run_sa_key" {
-  service_account_id = google_service_account.cloud_run_sa.name
-  keepers = {
-    last_rotation = timestamp()
-  }
-  lifecycle {
-    ignore_changes = [
-      keepers
-    ]
-  }
 }
 
 # Cloud Run service to deploy the application in CICD pipeline
-resource "google_cloud_run_v2_service" "todo_app_service" {
-  name     = var.service_name
-  location = var.region
-
-  template {
-    containers {
-      image = var.initial_image_url
-    }
-    service_account = google_service_account.cloud_run_sa.email
-  }
-
-  lifecycle {
-    ignore_changes = [
-      template[0].containers[0].image
-    ]
-  }
+module "cloud_run_service" {
+  source = "./modules/cloud_run"
+  project_id = var.project_id
+  region = var.region
+  service_name = var.service_name
+  initial_image_url = var.initial_image_url
+  service_account_email = module.cloud_run_service_account.email
 }
-
