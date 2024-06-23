@@ -25,44 +25,43 @@ This application is built using Next.js, with infrastructure automation managed 
 
 1. Create the backend bucket in GCP to store `tfstate` file
 
-* Create a bucket with GCP Cloud Storage service
-* Retrieve the bucket ID and add it to the `terraform/backend.tf` configuration file.
+    * Create a bucket with GCP Cloud Storage service
+    * Retrieve the bucket ID and add it to the `terraform/backend.tf` configuration file.
 
 3. Run terraform configuration
-* Initialize Terraform in `terraform` directory.
-
-  ```bash
-  terraform init
-  ```
-* Update the necessary information such as `project_id`, `region`, `service_name`, `initial_image_url` in `variables.tf` file. 
-* Run the terraform file
-  ```bash
-  terraform plan
-  terraform apply
-    ```
-* above step will create following resources
-  * Enable APIs in cloud project
-  * Create cloud run service account
-  * Attach the required roles to the service account
-  * Create the artifact repository
-  * Generate the service account key
-  * Create initial cloud run v2 service with a placeholder image
+    * Initialize Terraform in `terraform` directory.
+        ```bash
+        terraform init
+        ```
+    * Update the necessary information such as `project_id`, `region`, `service_name`, `initial_image_url` in `variables.tf` file. 
+    * Run the terraform file
+        ```bash
+        terraform plan
+        terraform apply
+        ```
+    * above step will create following resources
+        * Enable APIs in cloud project
+        * Create cloud run service account
+        * Attach the required roles to the service account
+        * Create the artifact repository
+        * Generate the service account key
+        * Create initial cloud run v2 service with a placeholder image
 
 4.  Retrieve the service account key
-* After executing the terraform configuration, get the SA key using,
-  ```bash
-  terraform output -json
-    ```
+    * After executing the terraform configuration, get the SA key using,
+        ```bash
+        terraform output -json
+        ```
 5.  Add Secrets to GitHub
- * Add the generated service account key to GitHub secrets as `GCP_SA_KEY`.
- * Add the project ID to GitHub secrets as `GCP_PROJECT_ID`.
+    * Add the generated service account key to GitHub secrets as `GCP_SA_KEY`.
+    * Add the project ID to GitHub secrets as `GCP_PROJECT_ID`.
 
 6.  Edit the Workflow File
-* Change the target push branch as required
-* Add the terraform step output repository ID to `DOCKER_REPOSITORY_ID`
-* Add previously created `CLOUD_RUN_SERVICE_NAME`
-* Change the docker image name if required with `DOCKER_IMAGE_NAME`
-* Add the region to `GCP_REGION`
+    * Change the target push branch as required
+    * Add the terraform step output repository ID to `DOCKER_REPOSITORY_ID`
+    * Add previously created `CLOUD_RUN_SERVICE_NAME`
+    * Change the docker image name if required with `DOCKER_IMAGE_NAME`
+    * Add the region to `GCP_REGION`
 
 7. Commit changes and push to the repository.
 
